@@ -2,7 +2,7 @@
 F1 PREDICTOR - FINE-TUNING GUIDE (IDIOT-PROOF EDITION)
 ================================================================================
 
-This guide will help you fine-tune Llama 3.2 3B on Kaggle for FREE.
+This guide will help you fine-tune Qwen 2.5 3B on Kaggle for FREE.
 Total time: ~1 hour
 Difficulty: Copy-paste level
 
@@ -39,11 +39,7 @@ STEP 3: Get Hugging Face Token
 8. Click "Generate"
 9. COPY THE TOKEN (you won't see it again!)
 
-STEP 4: Accept Llama License
-----------------------------
-1. Go to: https://huggingface.co/meta-llama/Llama-3.2-3B
-2. Click "Agree and access repository"
-3. Wait for approval (usually instant)
+   ✅ That's it! Qwen 2.5 3B is ungated - NO license approval needed!
 
 
 ================================================================================
@@ -212,7 +208,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 
-model_name = "meta-llama/Llama-3.2-3B"
+model_name = "Qwen/Qwen2.5-3B"
 
 # 4-bit quantization config
 bnb_config = BitsAndBytesConfig(
@@ -223,7 +219,7 @@ bnb_config = BitsAndBytesConfig(
 )
 
 # Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
@@ -232,6 +228,7 @@ model = AutoModelForCausalLM.from_pretrained(
     model_name,
     quantization_config=bnb_config,
     device_map="auto",
+    trust_remote_code=True,
 )
 
 model = prepare_model_for_kbit_training(model)
@@ -259,7 +256,7 @@ from trl import SFTTrainer
 from transformers import TrainingArguments
 
 training_args = TrainingArguments(
-    output_dir="./f1-llama-lora",
+    output_dir="./f1-qwen-lora",
     num_train_epochs=3,
     per_device_train_batch_size=2,
     gradient_accumulation_steps=4,
@@ -293,8 +290,8 @@ print("✅ Training complete!")
 --------------------------------------------------------------------------------
 
 # Save locally
-model.save_pretrained("./f1-llama-lora-final")
-tokenizer.save_pretrained("./f1-llama-lora-final")
+model.save_pretrained("./f1-qwen-lora-final")
+tokenizer.save_pretrained("./f1-qwen-lora-final")
 
 # Upload to Hugging Face
 from huggingface_hub import HfApi
@@ -302,7 +299,7 @@ from huggingface_hub import HfApi
 api = HfApi()
 
 # Create repo (change YOUR_USERNAME to your Hugging Face username)
-repo_name = "f1-predictor-lora"
+repo_name = "f1-predictor-qwen-lora"
 
 try:
     api.create_repo(repo_name, private=True)
@@ -311,7 +308,7 @@ except:
 
 # Upload
 api.upload_folder(
-    folder_path="./f1-llama-lora-final",
+    folder_path="./f1-qwen-lora-final",
     repo_id=f"{api.whoami()['name']}/{repo_name}",
 )
 
@@ -373,7 +370,7 @@ Cell 8: ~30 seconds (test)
 STEP 2: Note Your Model URL
 ---------------------------
 After Cell 7, you'll see a URL like:
-https://huggingface.co/YOUR_USERNAME/f1-predictor-lora
+https://huggingface.co/YOUR_USERNAME/f1-predictor-qwen-lora
 
 SAVE THIS URL! You need it for the next part.
 
@@ -386,13 +383,13 @@ STEP 1: Download Adapter Files
 ------------------------------
 1. Go to your Hugging Face model URL
 2. Click "Files and versions"
-3. Download ALL files to a folder called "f1-lora" on your Mac
+3. Download ALL files to a folder called "f1-qwen-lora" on your Mac
 
-STEP 2: Install llama-cpp-python (one time)
--------------------------------------------
-Open Terminal and run:
-
-pip3 install llama-cpp-python
+STEP 2: The adapter works with Ollama or transformers
+------------------------------------------------------
+Your LoRA adapter can be used with:
+- Ollama (create custom model with adapter)
+- Transformers library (load base + adapter in Python)
 
 STEP 3: Update Your Project
 ---------------------------
@@ -411,8 +408,7 @@ ERROR: "GPU not available"
 
 ERROR: "Access denied" or "gated repo"  
 ---------------------------------------
-→ You didn't accept Llama license. Do Part 1, Step 4.
-→ Or your HF_TOKEN is wrong. Regenerate it.
+→ Your HF_TOKEN is wrong. Regenerate it in Hugging Face settings.
 
 ERROR: "Out of memory"
 ----------------------
@@ -434,7 +430,7 @@ QUICK REFERENCE
 
 Kaggle: https://www.kaggle.com
 Hugging Face: https://huggingface.co
-Llama License: https://huggingface.co/meta-llama/Llama-3.2-3B
+Qwen Model: https://huggingface.co/Qwen/Qwen2.5-3B
 
 Total Time: ~1 hour
 Cost: FREE
